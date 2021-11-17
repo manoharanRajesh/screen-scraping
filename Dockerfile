@@ -16,7 +16,7 @@ WORKDIR /usr/src/app
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-RUN npm i puppeteer
+RUN npm i puppeteer && npm install -g nodemon
 COPY . .
 ADD package.json package-lock.json /
 RUN npm install

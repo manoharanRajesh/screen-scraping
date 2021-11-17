@@ -12,8 +12,13 @@ app.set('view engine', 'pug');
 var serveIndex = require('serve-index');
 app.use('/images', serveIndex(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'public')));
-app.post('/capture', (req, res) => {
-    Promise.all([captureMain()])
+app.all('/capture', express.json({type: '*/*'}), (req, res) => {
+    var url = req.body.pageUrl;
+    if(url === undefined ||
+        url.trim() === ''){
+        url = process.env.DEV_PORTAL_URL;
+    }
+    Promise.all([captureMain(url)])
         .then(() => {
             console.log('successfully');
             res.status(200).send('successfully');
@@ -23,23 +28,22 @@ app.post('/capture', (req, res) => {
             res.status(500).send(err);
         });
     console.log('Completed');
+});
 
-})
 
-const captureMain = async () => {
+const captureMain = async (url) => {
     console.log('launch capture screen');
     try {
         const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
         const page = await browser.newPage();
-        console.log('open screen' + process.env.DEV_PORTAL_URL);
-        await page.goto(process.env.DEV_PORTAL_URL);
+        console.log('open screen' + url);
+        await page.goto(url);
         console.log('taking screen shot: ' + "./screenshot"+moment().format('YYYY-MM-DD-HH-mm-ss')+".png");
         await page.screenshot({ path: "./public/screenshots/screenshot"+moment().format('YYYY-MM-DD-HH-mm-ss')+".png", fullPage: true });
         await browser.close();
     } catch (e) {
         console.log(e);
     }
-
 };
 
 app.listen(process.env.PORT || 3000)
