@@ -18,7 +18,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 RUN npm i puppeteer && npm install -g nodemon
 COPY . .
-ADD package.json package-lock.json /
+ADD package.json /
 RUN npm install
 EXPOSE 3000
 CMD npm run start
