@@ -14,14 +14,19 @@ app.use('/images', serveIndex(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'public')));
 app.all('/capture', express.json({type: '*/*'}), (req, res) => {
     var url = req.body.pageUrl;
+    var fileName = req.body.FILENAME;
     if(url === undefined ||
         url.trim() === ''){
         url = process.env.DEV_PORTAL_URL;
     }
-    Promise.all([captureMain(url)])
+    if(fileName === undefined ||
+        fileName.trim() === ''){
+        fileName = 'LatestScreenshot';
+    }
+    Promise.all([captureMain(url,fileName)])
         .then(() => {
             console.log('successfully');
-            res.status(200).send('successfully');
+            res.status(200).sendFile(path.join(__dirname,'./public/screenshots/'+fileName+'.jpeg'));
         })
         .catch(err => {
             console.log(err);
@@ -31,15 +36,17 @@ app.all('/capture', express.json({type: '*/*'}), (req, res) => {
 });
 
 
-const captureMain = async (url) => {
+const captureMain = async (url, fileName) => {
     console.log('launch capture screen');
     try {
         const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
         const page = await browser.newPage();
         console.log('open screen' + url);
         await page.goto(url);
-        console.log('taking screen shot: ' + "./screenshot"+moment().format('YYYY-MM-DD-HH-mm-ss')+".png");
-        await page.screenshot({ path: "./public/screenshots/screenshot"+moment().format('YYYY-MM-DD-HH-mm-ss')+".png", fullPage: true });
+        console.log('taking screen shot: ' + "./public/screenshots/"+fileName+".jpeg");
+        await page.screenshot({ path: "./public/screenshots/"+fileName+".jpeg", fullPage: true, type: "jpeg", quality:100});
+       //         console.log('taking screen shot: ' + "./screenshot"+moment().format('YYYY-MM-DD-HH-mm-ss')+".jpeg");
+        // await page.screenshot({ path: "./public/screenshots/screenshot"+moment().format('YYYY-MM-DD-HH-mm-ss')+".png", fullPage: true });
         await browser.close();
     } catch (e) {
         console.log(e);
